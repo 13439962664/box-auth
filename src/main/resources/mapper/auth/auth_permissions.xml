@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.box.auth.dao.AuthPermissionsDao">
+    <!--使用自定义的缓存 -->
+    <cache type="com.box.utils.MybatisRedisCache"/>  
+    
+    <sql id="allColumn">id,permissions_code,permissions_name,del_,version_</sql>
+    <sql id="requirement">1=1 and del_=0</sql>
+    <sql id="fromName">auth_permissions</sql>
+    
+    <select id="query" resultType="com.box.auth.pojo.AuthPermissions" >
+        select <include refid="allColumn"/> 
+        from <include refid="fromName"/> 
+        where 1=1
+        <if test="del_ != null">
+        	and del_=#{del_}
+        </if>
+        <if test="permissionsName != null  and permissionsName != ''">
+        	and permissions_name=#{permissionsName}
+        </if>
+    </select>
+    
+    <select id="findByRoleId" resultType="com.box.auth.pojo.AuthPermissions" >
+        select <include refid="allColumn"/> 
+        from <include refid="fromName"/> t
+        where <include refid="requirement"/>
+        and exists(select * from auth_role_permissions tt where t.id=tt.permissions_id and tt.role_id=#{role_id})
+    </select>
+    
+    <select id="findByUserId" resultType="com.box.auth.pojo.AuthPermissions" >
+        select <include refid="allColumn"/> 
+        from <include refid="fromName"/> t
+        where <include refid="requirement"/>
+        and exists(select * from auth_role_permissions tt where t.id=tt.permissions_id 
+        and exists(select * from auth_user_role ttt where tt.role_id=ttt.role_id and ttt.user_id=#{user_id})
+        )
+    </select>
+    
+    <select id="get" resultType="com.box.auth.pojo.AuthPermissions" >
+        select <include refid="allColumn"/> 
+        from <include refid="fromName"/> 
+        where <include refid="requirement"/> and id=#{id}
+    </select>
+    
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        insert into <include refid="fromName"/>
+        (<include refid="allColumn"/>) 
+        values(null,#{permissionsCode},#{permissionsName},#{del_},#{version_})
+    </insert>
+    
+    <update id="update">
+        update <include refid="fromName"/> 
+        set permissions_code=#{permissionsCode},permissions_name=#{permissionsName} 
+        where <include refid="requirement"/> and id=#{id}
+    </update>
+    
+    <update id="removeBatch">
+        update <include refid="fromName"/> 
+        set del_=1 
+        where <include refid="requirement"/> and id in(
+        <foreach collection="ids" item="id" separator=",">
+      		#{id}
+      	</foreach>
+      	)
+    </update>
+    
+    <update id="recoveryBatch">
+        update <include refid="fromName"/> 
+        set del_=0 
+        where del_=1 and id in(
+        <foreach collection="ids" item="id" separator=",">
+      		#{id}
+      	</foreach>
+      	)
+    </update>
+    
+    <insert id="addRoleBatch">
+        insert into auth_role_permissions
+        (role_id,permissions_id) 
+        values
+        <foreach collection="roleIds" item="roleId" separator=",">
+      		(#{roleId},#{permissionsId})
+      	</foreach>
+    </insert>
+    
+    <delete id="removeRoleBatch">
+        delete from auth_role_permissions 
+        where permissions_id=#{permissionsId} and role_id in(
+        <foreach collection="roleIds" item="roleId" separator=",">
+      		#{roleId}
+      	</foreach>
+      	)
+    </delete>
+</mapper>

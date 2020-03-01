@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.box.auth.dao.AuthUserDao">
+    <!--使用自定义的缓存 -->
+    <cache type="com.box.utils.MybatisRedisCache"/>  
+    
+   	<sql id="allColumn">id,user_name,password,del_,version_</sql>
+   	<sql id="desColumn">id,user_name,del_,version_</sql>
+    <sql id="requirement">1=1 and del_=0</sql>
+    <sql id="fromName">auth_user</sql>
+    
+    <select id="query" resultType="com.box.auth.pojo.AuthUser" >
+        select <include refid="desColumn"/> 
+        from <include refid="fromName"/> 
+        where 1=1
+        <if test="del_ != null">
+        	and del_=#{del_}
+        </if>
+        <if test="userName != null  and userName != ''">
+        	<bind name="userNameLike" value="'%' + userName + '%'" />
+        	and user_name like #{userNameLike} 
+        </if>
+    </select>
+    
+    <select id="get" resultType="com.box.auth.pojo.AuthUser" >
+        select <include refid="desColumn"/> 
+        from <include refid="fromName"/> 
+        where <include refid="requirement"/> and id=#{id}
+    </select>
+    
+    <select id="getByUserName" resultType="com.box.auth.pojo.AuthUser" >
+        select <include refid="allColumn"/> 
+        from <include refid="fromName"/> 
+        where <include refid="requirement"/> and user_name=#{userName}
+    </select>
+    
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        insert into <include refid="fromName"/>
+        (<include refid="allColumn"/>) 
+        values(null,#{userName},#{password},#{del_},#{version_})
+    </insert>
+    
+    <update id="updatePassword">
+        update <include refid="fromName"/> 
+        set password=#{password} 
+        where <include refid="requirement"/> and id=#{id} and password=#{oldPassword} 
+    </update>
+    
+    <update id="removeBatch">
+        update <include refid="fromName"/> 
+        set del_=1 
+        where <include refid="requirement"/> and id in(
+        <foreach collection="ids" item="id" separator=",">
+      		#{id}
+      	</foreach>
+      	)
+    </update>
+    
+    <update id="recoveryBatch">
+        update <include refid="fromName"/> 
+        set del_=0 
+        where del_=1 and id in(
+        <foreach collection="ids" item="id" separator=",">
+      		#{id}
+      	</foreach>
+      	)
+    </update>
+    
+    <insert id="addRoleBatch">
+        insert into auth_user_role
+        (user_id,role_id) 
+        values
+        <foreach collection="roleIds" item="roleId" separator=",">
+      		(#{userId},#{roleId})
+      	</foreach>
+    </insert>
+    
+    <delete id="removeRoleBatch">
+        delete from auth_user_role 
+        where user_id=#{userId} and role_id in(
+        <foreach collection="roleIds" item="roleId" separator=",">
+      		#{roleId}
+      	</foreach>
+      	)
+    </delete>
+    
+    <select id="findByRoleId" resultType="com.box.auth.pojo.AuthUser" >
+        select <include refid="desColumn"/> 
+        from <include refid="fromName"/> t
+        where <include refid="requirement"/>
+        and exists(select * from auth_user_role tt where t.id=tt.user_id and tt.role_id=#{role_id})
+    </select>
+    
+    <select id="findByPermissionsId" resultType="com.box.auth.pojo.AuthUser" >
+        select <include refid="desColumn"/> 
+        from <include refid="fromName"/> t
+        where <include refid="requirement"/>
+        and exists(select * from auth_user_role tt where t.id=tt.user_id 
+        and exists(select * from auth_role_permissions ttt where tt.role_id=ttt.role_id and ttt.permissions_id=#{permissions_id})
+        )
+    </select>
+</mapper>
