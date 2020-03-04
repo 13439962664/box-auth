@@ -5,33 +5,32 @@ import java.util.Map;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.SimpleCookie;
-import org.crazycake.shiro.RedisCacheManager;
-import org.crazycake.shiro.RedisManager;
-import org.crazycake.shiro.RedisSessionDAO;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
+import com.box.auth.config.shiro.ShiroRedisCacheManager;
+import com.box.auth.config.shiro.ShiroRedisCacheProperties;
+import com.box.auth.config.shiro.ShiroRedisSessionDao;
 import com.box.auth.custom.CustomRealm;
 
 @Configuration
-@PropertySource("classpath:application.properties")
 public class ShiroConfig {
 
 	// Filter工厂，设置对应的过滤条件和跳转条件
 	@Bean
-	public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {
+	public ShiroFilterFactoryBean shiroFilter() {
 		ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
 
-		shiroFilterFactoryBean.setSecurityManager(securityManager);
+		shiroFilterFactoryBean.setSecurityManager(securityManager());
 		// 登录
 		shiroFilterFactoryBean.setLoginUrl("/loginPage");
 		// 首页
@@ -56,21 +55,38 @@ public class ShiroConfig {
 		shiroFilterFactoryBean.setFilterChainDefinitionMap(filterMap);
 		return shiroFilterFactoryBean;
 	}
-
+	
+	@Autowired
+	private ShiroRedisCacheManager shiroRedisCacheManager;
+	
 	/**
 	 * description: 权限管理，配置主要是Realm的管理认证
 	 * 
 	 * @return SecurityManager
 	 */
-	@Bean
+	@Bean(name = "securityManager")
 	public SecurityManager securityManager() {
 		DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
 		securityManager.setRealm(customRealm());
 		// 自定义session管理 使用redis
 		securityManager.setSessionManager(sessionManager());
 		// 自定义缓存实现 使用redis
-		securityManager.setCacheManager(redisCacheManager());
+		securityManager.setCacheManager(shiroRedisCacheManager);
 		return securityManager;
+	}
+
+	@Autowired
+	private ShiroRedisSessionDao shiroRedisSessionDao;
+	
+	/**
+	 * session 管理对象
+	 */
+	private DefaultWebSessionManager sessionManager() {
+		DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+		sessionManager.setGlobalSessionTimeout(ShiroRedisCacheProperties.MILLIS_PER_MINUTE*30);
+		shiroRedisSessionDao.setSessionIdGenerator(new JavaUuidSessionIdGenerator());
+		sessionManager.setSessionDAO(shiroRedisSessionDao);
+		return sessionManager;
 	}
 
 	/**
@@ -86,24 +102,24 @@ public class ShiroConfig {
 	/**
 	 * 自定义sessionManager
 	 */
-	@Bean
-	public SessionManager sessionManager() {
-		BoxSessionManager sessionManager = new BoxSessionManager();
-		sessionManager.setSessionDAO(redisSessionDAO());
-		return sessionManager;
-	}
+//	@Bean
+//	public SessionManager sessionManager() {
+//		BoxSessionManager sessionManager = new BoxSessionManager();
+//		sessionManager.setSessionDAO(redisSessionDAO());
+//		return sessionManager;
+//	}
 
 	/**
 	 * cacheManager 缓存 redis实现, 使用的是shiro-redis开源插件
 	 */
-	@Bean
-	public RedisCacheManager redisCacheManager() {
-		RedisCacheManager redisCacheManager = new RedisCacheManager();
-		redisCacheManager.setRedisManager(redisManager());
-		// 必须要设置主键名称，shiro-redis 插件用过这个缓存用户信息
-		redisCacheManager.setPrincipalIdFieldName("id");
-		return redisCacheManager;
-	}
+//	@Bean
+//	public RedisCacheManager redisCacheManager() {
+//		RedisCacheManager redisCacheManager = new RedisCacheManager();
+//		redisCacheManager.setRedisManager(redisManager());
+//		// 必须要设置主键名称，shiro-redis 插件用过这个缓存用户信息
+//		redisCacheManager.setPrincipalIdFieldName("id");
+//		return redisCacheManager;
+//	}
 
 	/**
 	 * 凭证匹配器（由于我们的密码校验交给Shiro的SimpleAuthenticationInfo进行处理了）
@@ -122,20 +138,20 @@ public class ShiroConfig {
 
 	@Value("${server.servlet.session.timeout}")
 	public int session_timeout;
-	
+
 	/**
 	 * RedisSessionDAO shiro sessionDao层的实现 通过redis, 使用的是shiro-redis开源插件
 	 * 
 	 * @return RedisSessionDAO
 	 */
-	@Bean
-	public RedisSessionDAO redisSessionDAO() {
-		RedisSessionDAO redisSessionDAO = new RedisSessionDAO();
-		redisSessionDAO.setRedisManager(redisManager());
-		redisSessionDAO.setSessionIdGenerator(sessionIdGenerator());
-		redisSessionDAO.setExpire(session_timeout);
-		return redisSessionDAO;
-	}
+//	@Bean
+//	public RedisSessionDAO redisSessionDAO() {
+//		RedisSessionDAO redisSessionDAO = new RedisSessionDAO();
+//		redisSessionDAO.setRedisManager(redisManager());
+//		redisSessionDAO.setSessionIdGenerator(sessionIdGenerator());
+//		redisSessionDAO.setExpire(session_timeout);
+//		return redisSessionDAO;
+//	}
 
 	/**
 	 * Session ID 生成器
@@ -147,27 +163,18 @@ public class ShiroConfig {
 		return new JavaUuidSessionIdGenerator();
 	}
 
-	@Value("${spring.redis.host}")
-	public String host;
-	@Value("${spring.redis.port}")
-	public String port;
-	@Value("${spring.redis.timeout}")
-	public int timeout;
-	@Value("${spring.redis.password}")
-	public String password;
-	
 	/**
 	 * 配置shiro redisManager, 使用的是shiro-redis开源插件
 	 * 
 	 * @return RedisManager
 	 */
-	private RedisManager redisManager() {
-		RedisManager redisManager = new RedisManager();
-		redisManager.setHost( host+ ":" + port);
-		redisManager.setTimeout(timeout);
-		redisManager.setPassword(password);
-		return redisManager;
-	}
+//	private RedisManager redisManager() {
+//		RedisManager redisManager = new RedisManager();
+//		redisManager.setHost( host+ ":" + port);
+//		redisManager.setTimeout(timeout);
+//		redisManager.setPassword(password);
+//		return redisManager;
+//	}
 
 	/*
 	 * 开启Shiro的注解(如@RequiresRoles,@RequiresPermissions),需借助SpringAOP扫描使用Shiro注解的类,
@@ -182,9 +189,9 @@ public class ShiroConfig {
 	}
 
 	@Bean
-	public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
+	public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor() {
 		AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
-		authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
+		authorizationAttributeSourceAdvisor.setSecurityManager(securityManager());
 		return authorizationAttributeSourceAdvisor;
 	}
 

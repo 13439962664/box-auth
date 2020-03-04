@@ -1,2 +1,2 @@
 spring:
-  profiles:    include: base,auth
+  profiles:    include: base,jdbc,redis-standaone,auth
