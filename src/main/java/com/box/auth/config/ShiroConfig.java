@@ -50,6 +50,8 @@ public class ShiroConfig {
 		filterMap.put("/**/*.html", "anon");
 		filterMap.put("/**/*.js", "anon");
 		filterMap.put("/**/*.css", "anon");
+		filterMap.put("/**/chat/**", "anon");
+		
 		// 所有请求需要oauth2认证
 		filterMap.put("/**", "authc");
 		shiroFilterFactoryBean.setFilterChainDefinitionMap(filterMap);
