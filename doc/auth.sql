@@ -25,6 +25,10 @@ CREATE TABLE `auth_permissions` (
   `permissions_name` varchar(50) DEFAULT NULL,
   `del_` int(1) DEFAULT NULL,
   `version_` int(11) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `create_user` int(11) DEFAULT NULL,
+  `last_time` datetime DEFAULT NULL,
+  `last_user` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `i_auth_permissions_code` (`permissions_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4;
@@ -59,6 +63,10 @@ CREATE TABLE `auth_role` (
   `role_name` varchar(50) DEFAULT NULL,
   `del_` int(1) DEFAULT NULL,
   `version_` int(11) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `create_user` int(11) DEFAULT NULL,
+  `last_time` datetime DEFAULT NULL,
+  `last_user` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `i_auth_role_code` (`role_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
@@ -108,6 +116,10 @@ CREATE TABLE `auth_user` (
   `password` varchar(64) DEFAULT NULL,
   `del_` int(1) DEFAULT NULL,
   `version_` int(11) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `create_user` int(11) DEFAULT NULL,
+  `last_time` datetime DEFAULT NULL,
+  `last_user` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `i_auth_user_name` (`user_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
