@@ -10,13 +10,14 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
 import com.box.auth.service.AuthPermissionsService;
 import com.box.common.DispatchDTO;
 import com.box.utils.JsonUtil;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageInfo;
 
 @RestController
 @RequestMapping("/auth/permissions")
@@ -37,7 +38,7 @@ public class AuthPermissionsController {
 	@RequiresPermissions({"auth_permissions_manage","auth_permissions_sel"})
 	@RequestMapping("/query")
 	public String query(AuthPermissions authPermissions, Integer pageIndex, Integer pageSize) {
-		PageInfo<AuthPermissions> pageInfo = authPermissionsServiceImpl.query(authPermissions, pageIndex, pageSize);
+		IPage<AuthPermissions> pageInfo = authPermissionsServiceImpl.query(authPermissions, pageIndex, pageSize);
 		return JsonUtil.controllerSuccessJson(pageInfo);
 	}
 	

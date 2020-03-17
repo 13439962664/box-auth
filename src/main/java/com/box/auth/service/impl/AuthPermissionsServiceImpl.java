@@ -6,6 +6,10 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.box.auth.dao.AuthPermissionsDao;
 import com.box.auth.dao.AuthRoleDao;
 import com.box.auth.dao.AuthUserDao;
@@ -13,11 +17,9 @@ import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
 import com.box.auth.service.AuthPermissionsService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 
 @Service
-public class AuthPermissionsServiceImpl implements AuthPermissionsService {
+public class AuthPermissionsServiceImpl extends ServiceImpl<AuthPermissionsDao, AuthPermissions> implements AuthPermissionsService {
 
 	@Autowired
 	private AuthPermissionsDao authPermissionsDao;
@@ -29,33 +31,37 @@ public class AuthPermissionsServiceImpl implements AuthPermissionsService {
 	private AuthUserDao authUserDao;
 	
 	@Override
-	public PageInfo<AuthPermissions> query(AuthPermissions authPermissions,Integer pageIndex,Integer pageSize) {
-		if(!(authPermissions.getPermissionsName()==null||"".equals(authPermissions.getPermissionsName()))) {
-			authPermissions.setPermissionsName("*"+authPermissions.getPermissionsName()+"*");
+	public IPage<AuthPermissions> query(AuthPermissions authPermissions,Integer pageIndex,Integer pageSize) {
+		IPage<AuthPermissions> page = new Page<AuthPermissions>(pageIndex,pageSize);
+		QueryWrapper<AuthPermissions> query = new QueryWrapper<AuthPermissions>();
+		if(authPermissions.getDel_()!=null) {
+			query.eq("del_", authPermissions.getDel_());
 		}
-		final PageInfo<AuthPermissions> pageInfo = PageHelper.startPage(pageIndex, pageSize).setOrderBy("id desc")
-				.doSelectPageInfo(() -> this.authPermissionsDao.query(authPermissions));
-		return pageInfo;
+		if(!(authPermissions.getPermissionsName()==null||"".equals(authPermissions.getPermissionsName()))) {
+			query.like("permissions_name", authPermissions.getPermissionsName());
+		}
+		page = authPermissionsDao.selectPage(page, query);
+		return page;
 	}
 
 	@Override
 	public AuthPermissions get(Long id) {
-		return authPermissionsDao.get(id);
+		return authPermissionsDao.selectById(id);
 	}
 
 	@Override
 	public int create(AuthPermissions authPermissions) {
-		return authPermissionsDao.create(authPermissions);
+		return authPermissionsDao.insert(authPermissions);
 	}
 
 	@Override
 	public int update(AuthPermissions authPermissions) {
-		return authPermissionsDao.update(authPermissions);
+		return authPermissionsDao.updateById(authPermissions);
 	}
 
 	@Override
 	public int removeBatch(Set<Long> ids) {
-		return authPermissionsDao.removeBatch(ids);
+		return authPermissionsDao.deleteBatchIds(ids);
 	}
 
 	@Override

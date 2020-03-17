@@ -5,36 +5,37 @@ import java.io.Serializable;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+
+import com.box.utils.RedisUtil;
 
 @Component
 public class ShiroRedisSessionDao extends EnterpriseCacheSessionDAO {
 	@Autowired
 	private ShiroRedisCacheProperties shiroRedisCacheProperties;
 	@Autowired
-	private RedisTemplate<Object,Object> redisTemplate;
+	private RedisUtil redisUtil;
 
-	private String getKey(String key) {
-		return shiroRedisCacheProperties.getSessionPrefix() + key;
+	private String getKey(Object k) {
+		return shiroRedisCacheProperties.getSessionPrefix() + (k == null ? "*" : k);
 	}
 	
     @Override
     protected Serializable doCreate(Session session) {
         Serializable sessionId = super.doCreate(session);
         String sessionIdStr = getKey(sessionId.toString());
-        redisTemplate.opsForValue().set(sessionIdStr,session);
+        redisUtil.set(sessionIdStr,session);
         return sessionId;
     }
     
     @Override
-    protected Session doReadSession(Serializable sessionId) {
+    public Session doReadSession(Serializable sessionId) {
     	Session session = super.doReadSession(sessionId);
     	String sessionIdStr = getKey(sessionId.toString());
     	if(session==null) {
-            session = (Session)redisTemplate.opsForValue().get(sessionIdStr);
+            Object obj = redisUtil.get(sessionIdStr);
+            session = (Session)obj;
     	}
-    	
         return session;
     }
 
@@ -43,7 +44,7 @@ public class ShiroRedisSessionDao extends EnterpriseCacheSessionDAO {
     protected void doUpdate(Session session) {
         super.doUpdate(session);
         String sessionIdStr = getKey(session.getId().toString());
-        redisTemplate.opsForValue().set(sessionIdStr,session);
+        redisUtil.set(sessionIdStr,session);
     }
     
 
@@ -52,7 +53,7 @@ public class ShiroRedisSessionDao extends EnterpriseCacheSessionDAO {
     protected void doDelete(Session session) {
         super.doDelete(session);
         String sessionIdStr = getKey(session.getId().toString());
-        redisTemplate.delete(sessionIdStr);
+        redisUtil.del(sessionIdStr);
     }
 
 }

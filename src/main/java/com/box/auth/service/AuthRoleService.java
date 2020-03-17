@@ -3,13 +3,15 @@ package com.box.auth.service;
 import java.util.List;
 import java.util.Set;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageInfo;
 
-public interface AuthRoleService {
-	public PageInfo<AuthRole> query(AuthRole authRole, Integer pageIndex, Integer pageSize);
+public interface AuthRoleService extends IService<AuthRole> {
+	public IPage<AuthRole> query(AuthRole authRole, Integer pageIndex, Integer pageSize);
 
 	public AuthRole get(Long id);
 

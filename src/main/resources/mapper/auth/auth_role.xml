@@ -10,17 +10,6 @@
     <sql id="requirement">1=1 and del_=0</sql>
     <sql id="fromName">auth_role</sql>
     
-    <select id="query" resultType="com.box.auth.pojo.AuthRole" >
-        select <include refid="allColumn"/> 
-        from <include refid="fromName"/> 
-        where 1=1
-        <if test="del_ != null">
-        	and del_=#{del_}
-        </if>
-        <if test="roleName != null  and roleName != ''">
-        	and role_name=#{roleName}
-        </if>
-    </select>
     
     <select id="findByUserId" resultType="com.box.auth.pojo.AuthRole" >
         select <include refid="allColumn"/> 
@@ -35,34 +24,6 @@
         where <include refid="requirement"/>
         and exists(select * from auth_role_permissions tt where t.id=tt.role_id and tt.permissions_id=#{permissions_id})
     </select>
-    
-    <select id="get" resultType="com.box.auth.pojo.AuthRole" >
-        select <include refid="allColumn"/> 
-        from <include refid="fromName"/> 
-        where <include refid="requirement"/> and id=#{id}
-    </select>
-    
-    <insert id="create" useGeneratedKeys="true" keyProperty="id">
-        insert into <include refid="fromName"/>
-        (<include refid="allColumn"/>) 
-        values(null,#{roleCode},#{roleName},#{del_},#{version_})
-    </insert>
-    
-    <update id="update">
-        update <include refid="fromName"/> 
-        set role_code=#{roleCode},role_name=#{roleName} 
-        where <include refid="requirement"/> and id=#{id}
-    </update>
-    
-    <update id="removeBatch">
-        update <include refid="fromName"/> 
-        set del_=1 
-        where <include refid="requirement"/> and id in(
-        <foreach collection="ids" item="id" separator=",">
-      		#{id}
-      	</foreach>
-      	)
-    </update>
     
     <update id="recoveryBatch">
         update <include refid="fromName"/> 

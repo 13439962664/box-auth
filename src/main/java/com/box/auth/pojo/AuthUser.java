@@ -3,23 +3,31 @@ package com.box.auth.pojo;
 import java.io.Serializable;
 import java.util.Set;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.box.pojo.BasePojo;
+
+import lombok.Data;
+
 /**
  * 
  * @author sunyizhuo 用户，拥有角色集合
  */
-public class AuthUser implements Serializable {
-	private static final long serialVersionUID = 2719604967484830846L;
-	private Long id;
+@Data
+@TableName("auth_user")
+public class AuthUser extends BasePojo implements Serializable{
+	private static final long serialVersionUID = -7333717548469547067L;
 	private String userName;
 	private String password;
+	@TableField(exist = false)
 	private String oldPassword;
-	private Integer del_ = 0;
-	private Long version_ = 0L;
 
 	/**
 	 * 用户对应的角色集合
 	 */
+	@TableField(exist = false)
 	private Set<AuthRole> roles;
+	@TableField(exist = false)
 	private Set<Long> roleIds;
 
 	public AuthUser() {
@@ -29,21 +37,11 @@ public class AuthUser implements Serializable {
 	public AuthUser(Long id, String userName, String password, String oldPassword, Integer del_, Long version_,
 			Set<AuthRole> roles, Set<Long> roleIds) {
 		super();
-		this.id = id;
 		this.userName = userName;
 		this.password = password;
 		this.oldPassword = oldPassword;
-		this.del_ = del_;
-		this.version_ = version_;
 		this.roles = roles;
 		this.roleIds = roleIds;
-	}
-
-	@Override
-	public String toString() {
-		return "SecurityUser [id=" + id + ", userName=" + userName + ", password=" + password + ", oldPassword="
-				+ oldPassword + ", del_=" + del_ + ", version_=" + version_ + ", roles=" + roles + ", roleIds="
-				+ roleIds + "]";
 	}
 
 	public String getOldPassword() {
@@ -60,30 +58,6 @@ public class AuthUser implements Serializable {
 
 	public void setRoleIds(Set<Long> roleIds) {
 		this.roleIds = roleIds;
-	}
-
-	public Integer getDel_() {
-		return del_;
-	}
-
-	public void setDel_(Integer del_) {
-		this.del_ = del_;
-	}
-
-	public Long getVersion_() {
-		return version_;
-	}
-
-	public void setVersion_(Long version_) {
-		this.version_ = version_;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 	public String getUserName() {

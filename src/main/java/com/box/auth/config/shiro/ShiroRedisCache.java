@@ -10,11 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import com.box.utils.RedisUtil;
+
 @Component
 public class ShiroRedisCache implements Cache<Object, Object> {
 
 	@Autowired
-	private RedisTemplate<Object, Object> client;
+	private RedisUtil redisUtil;
 
     private String keyPrefix;
     private long ttl;
@@ -24,21 +26,22 @@ public class ShiroRedisCache implements Cache<Object, Object> {
         this.ttl = redisCacheProperties.getValueCacheExpire();
     }
 
-    private Object getKey(Object k) {
+    private String getKey(Object k) {
         return this.keyPrefix + (k == null ? "*" : k);
     }
 
     @Override
     public Object get(Object o) throws CacheException {
-        return client.opsForValue().get(getKey(o));
+    	Object result = redisUtil.get(getKey(o));
+        return result;
     }
 
     @Override
     public Object put(Object o, Object o2) throws CacheException {
         if (ttl >= 0) {
-            client.opsForValue().set(getKey(o), o2, ttl, TimeUnit.MILLISECONDS);
+        	redisUtil.set(getKey(o), o2, ttl);
         } else {
-            client.opsForValue().set(getKey(o), o2);
+        	redisUtil.set(getKey(o), o2);
         }
         return o2;
     }
@@ -46,13 +49,13 @@ public class ShiroRedisCache implements Cache<Object, Object> {
     @Override
     public Object remove(Object o) throws CacheException {
         Object result = get(o);
-        client.delete(getKey(o));
+        redisUtil.del(getKey(o));
         return result;
     }
 
     @Override
     public void clear() throws CacheException {
-        client.delete(getKey("*"));
+    	redisUtil.del(getKey("*"));
     }
 
     @Override
@@ -62,12 +65,12 @@ public class ShiroRedisCache implements Cache<Object, Object> {
 
     @Override
     public Set<Object> keys() {
-        return client.keys(getKey("*"));
+        return redisUtil.keys(getKey("*"));
     }
 
     @Override
     public Collection<Object> values() {
-        return client.opsForValue().multiGet(keys());
+        return redisUtil.getList(getKey("*"));
     }
 
 }

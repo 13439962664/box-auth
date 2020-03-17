@@ -35,7 +35,7 @@ public class ShiroRedisCacheProperties {
 	/**
 	 * Time unit：millis
 	 */
-	private Long valueCacheExpire = -1L;
+	private Long valueCacheExpire = 10*60L;
 
 	private boolean isSerializeTransient = true;
 

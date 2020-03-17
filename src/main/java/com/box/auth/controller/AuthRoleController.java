@@ -7,13 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
 import com.box.auth.service.AuthRoleService;
 import com.box.common.DispatchDTO;
 import com.box.utils.JsonUtil;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageInfo;
 
 @RestController
 @RequestMapping("/auth/role")
@@ -25,7 +26,7 @@ public class AuthRoleController {
 	@RequiresPermissions({ "auth_role_manage", "auth_role_sel" })
 	@RequestMapping("/query")
 	public String query(AuthRole authRole, Integer pageIndex, Integer pageSize) {
-		PageInfo<AuthRole> pageInfo = authRoleServiceImpl.query(authRole, pageIndex, pageSize);
+		IPage<AuthRole> pageInfo = authRoleServiceImpl.query(authRole, pageIndex, pageSize);
 		return JsonUtil.controllerSuccessJson(pageInfo);
 	}
 

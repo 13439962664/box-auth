@@ -20,7 +20,7 @@ import com.box.auth.service.LoginService;
  * @author sunyizhuo
  *
  */
-public class CustomRealm extends AuthorizingRealm {
+public class ShiroCustomRealm extends AuthorizingRealm {
 
 	@Autowired
 	private LoginService loginService;
@@ -31,9 +31,7 @@ public class CustomRealm extends AuthorizingRealm {
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
 		// 获取登录用户名
-		String name = (String) principalCollection.getPrimaryPrincipal();
-		// 根据用户名去数据库查询用户信息
-		AuthUser user = loginService.getUserByName(name);
+		AuthUser user = (AuthUser) principalCollection.getPrimaryPrincipal();
 		// 添加角色和权限
 		SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
 		for (AuthRole role : user.getRoles()) {
@@ -65,7 +63,7 @@ public class CustomRealm extends AuthorizingRealm {
 			return null;
 		} else {
 			// 这里验证authenticationToken和simpleAuthenticationInfo的信息
-			SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(name,
+			SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(user,
 					user.getPassword(), getName());
 			return simpleAuthenticationInfo;
 		}

@@ -3,13 +3,15 @@ package com.box.auth.service;
 import java.util.List;
 import java.util.Set;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageInfo;
 
-public interface AuthUserService {
-	public PageInfo<AuthUser> query(AuthUser authUser,Integer pageIndex,Integer pageSize);
+public interface AuthUserService extends IService<AuthUser> {
+	public IPage<AuthUser> query(AuthUser authUser,Integer pageIndex,Integer pageSize);
 	public AuthUser get(Long id);
 	public int create(AuthUser authUser);
 	public int updatePassword(AuthUser authUser);

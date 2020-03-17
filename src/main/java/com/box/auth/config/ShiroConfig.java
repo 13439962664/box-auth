@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import com.box.auth.config.shiro.ShiroRedisCacheManager;
 import com.box.auth.config.shiro.ShiroRedisCacheProperties;
 import com.box.auth.config.shiro.ShiroRedisSessionDao;
-import com.box.auth.custom.CustomRealm;
+import com.box.auth.custom.ShiroCustomRealm;
 
 @Configuration
 public class ShiroConfig {
@@ -69,7 +69,7 @@ public class ShiroConfig {
 	@Bean(name = "securityManager")
 	public SecurityManager securityManager() {
 		DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-		securityManager.setRealm(customRealm());
+		securityManager.setRealm(shiroCustomRealm());
 		// 自定义session管理 使用redis
 		securityManager.setSessionManager(sessionManager());
 		// 自定义缓存实现 使用redis
@@ -95,8 +95,8 @@ public class ShiroConfig {
 	 * 将自己的验证方式加入容器
 	 */
 	@Bean
-	public CustomRealm customRealm() {
-		CustomRealm customRealm = new CustomRealm();
+	public ShiroCustomRealm shiroCustomRealm() {
+		ShiroCustomRealm customRealm = new ShiroCustomRealm();
 		customRealm.setCredentialsMatcher(hashedCredentialsMatcher());
 		return customRealm;
 	}

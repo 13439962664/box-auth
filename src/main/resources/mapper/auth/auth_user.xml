@@ -11,63 +11,6 @@
     <sql id="requirement">1=1 and del_=0</sql>
     <sql id="fromName">auth_user</sql>
     
-    <select id="query" resultType="com.box.auth.pojo.AuthUser" >
-        select <include refid="desColumn"/> 
-        from <include refid="fromName"/> 
-        where 1=1
-        <if test="del_ != null">
-        	and del_=#{del_}
-        </if>
-        <if test="userName != null  and userName != ''">
-        	<bind name="userNameLike" value="'%' + userName + '%'" />
-        	and user_name like #{userNameLike} 
-        </if>
-    </select>
-    
-    <select id="get" resultType="com.box.auth.pojo.AuthUser" >
-        select <include refid="desColumn"/> 
-        from <include refid="fromName"/> 
-        where <include refid="requirement"/> and id=#{id}
-    </select>
-    
-    <select id="getByUserName" resultType="com.box.auth.pojo.AuthUser" >
-        select <include refid="allColumn"/> 
-        from <include refid="fromName"/> 
-        where <include refid="requirement"/> and user_name=#{userName}
-    </select>
-    
-    <insert id="create" useGeneratedKeys="true" keyProperty="id">
-        insert into <include refid="fromName"/>
-        (<include refid="allColumn"/>) 
-        values(null,#{userName},#{password},#{del_},#{version_})
-    </insert>
-    
-    <update id="updatePassword">
-        update <include refid="fromName"/> 
-        set password=#{password} 
-        where <include refid="requirement"/> and id=#{id} and password=#{oldPassword} 
-    </update>
-    
-    <update id="removeBatch">
-        update <include refid="fromName"/> 
-        set del_=1 
-        where <include refid="requirement"/> and id in(
-        <foreach collection="ids" item="id" separator=",">
-      		#{id}
-      	</foreach>
-      	)
-    </update>
-    
-    <update id="recoveryBatch">
-        update <include refid="fromName"/> 
-        set del_=0 
-        where del_=1 and id in(
-        <foreach collection="ids" item="id" separator=",">
-      		#{id}
-      	</foreach>
-      	)
-    </update>
-    
     <insert id="addRoleBatch">
         insert into auth_user_role
         (user_id,role_id) 

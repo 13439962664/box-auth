@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.box.auth.dao.AuthPermissionsDao;
 import com.box.auth.dao.AuthRoleDao;
 import com.box.auth.dao.AuthUserDao;
@@ -24,11 +25,11 @@ import com.box.auth.service.LoginService;
 public class LoginServiceImpl implements LoginService {
 	
 	@Autowired
-	private AuthUserDao authUserMapper;
+	private AuthUserDao authUserDao;
 	@Autowired
-	private AuthRoleDao authRoleMapper;
+	private AuthRoleDao authRoleDao;
 	@Autowired
-	private AuthPermissionsDao authPermissionsMapper;
+	private AuthPermissionsDao authPermissionsDao;
 	
 	@Override
 	public AuthUser getUserByName(String userName) {
@@ -43,14 +44,15 @@ public class LoginServiceImpl implements LoginService {
 	 * @return
 	 */
 	private AuthUser getMapByName(String userName) {
-		AuthUser user = authUserMapper.getByUserName(userName);
+//		AuthUser user = authUserDao.getByUserName(userName);
+		AuthUser user = authUserDao.selectOne(new QueryWrapper<AuthUser>().eq("user_name", userName));
 		if(!(user==null||user.getId()==null)) {
-			List<AuthRole> roleList = authRoleMapper.findByUserId(user.getId());
+			List<AuthRole> roleList = authRoleDao.findByUserId(user.getId());
 			
 			Set<AuthRole> roleSet = new HashSet<>();
 			for(AuthRole role:roleList) {
 				Set<AuthPermissions> permissionsSet = new HashSet<>();
-				List<AuthPermissions> permissionsList = authPermissionsMapper.findByRoleId(role.getId());
+				List<AuthPermissions> permissionsList = authPermissionsDao.findByRoleId(role.getId());
 				for(AuthPermissions permissions:permissionsList) {
 					permissionsSet.add(permissions);
 				}

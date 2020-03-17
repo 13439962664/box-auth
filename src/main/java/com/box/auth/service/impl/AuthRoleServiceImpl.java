@@ -6,6 +6,10 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.box.auth.dao.AuthPermissionsDao;
 import com.box.auth.dao.AuthRoleDao;
 import com.box.auth.dao.AuthUserDao;
@@ -13,11 +17,11 @@ import com.box.auth.pojo.AuthPermissions;
 import com.box.auth.pojo.AuthRole;
 import com.box.auth.pojo.AuthUser;
 import com.box.auth.service.AuthRoleService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageHelper;
+//import com.github.pagehelper.PageInfo;
 
 @Service
-public class AuthRoleServiceImpl implements AuthRoleService {
+public class AuthRoleServiceImpl extends ServiceImpl<AuthRoleDao, AuthRole> implements AuthRoleService {
 
 	@Autowired
 	private AuthRoleDao authRoleDao;
@@ -29,33 +33,38 @@ public class AuthRoleServiceImpl implements AuthRoleService {
 	private AuthUserDao authUserDao;
 	
 	@Override
-	public PageInfo<AuthRole> query(AuthRole authRole,Integer pageIndex,Integer pageSize) {
-		if(!(authRole.getRoleName()==null||"".equals(authRole.getRoleName()))) {
-			authRole.setRoleName("*"+authRole.getRoleName()+"*");
+	public IPage<AuthRole> query(AuthRole authRole,Integer pageIndex,Integer pageSize) {
+		IPage<AuthRole> page = new Page<AuthRole>(pageIndex,pageSize);
+		QueryWrapper<AuthRole> query = new QueryWrapper<AuthRole>();
+		if(authRole.getDel_()!=null) {
+			query.eq("del_", authRole.getDel_());
 		}
-		final PageInfo<AuthRole> pageInfo = PageHelper.startPage(pageIndex, pageSize).setOrderBy("id desc")
-				.doSelectPageInfo(() -> this.authRoleDao.query(authRole));
-		return pageInfo;
+		if(!(authRole.getRoleName()==null||"".equals(authRole.getRoleName()))) {
+			query.like("role_name", authRole.getRoleName());
+		}
+		page = authRoleDao.selectPage(page, query);
+		return page;
 	}
+	
 
 	@Override
 	public AuthRole get(Long id) {
-		return authRoleDao.get(id);
+		return authRoleDao.selectById(id);
 	}
 
 	@Override
 	public int create(AuthRole authRole) {
-		return authRoleDao.create(authRole);
+		return authRoleDao.insert(authRole);
 	}
 
 	@Override
 	public int update(AuthRole authRole) {
-		return authRoleDao.update(authRole);
+		return authRoleDao.updateById(authRole);
 	}
 
 	@Override
 	public int removeBatch(Set<Long> ids) {
-		return authRoleDao.removeBatch(ids);
+		return authRoleDao.deleteBatchIds(ids);
 	}
 	
 	@Override
