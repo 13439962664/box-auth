@@ -1,6 +1,6 @@
 package com.box.auth.config;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
@@ -40,7 +40,7 @@ public class ShiroConfig {
 		// 当运行一个Web应用程序时,Shiro将会创建一些有用的默认Filter实例,并自动地在[main]项中将它们置为可用自动地可用的默认的Filter实例是被DefaultFilter枚举类定义的,枚举的名称字段就是可供配置的名称
 		// Shiro验证URL时,URL匹配成功便不再继续匹配查找(所以要注意配置文件中的URL顺序,尤其在使用通配符时)
 		// 配置不会被拦截的链接 顺序判断
-		Map<String, String> filterMap = new HashMap<>();
+		Map<String, String> filterMap = new LinkedHashMap<>();
 		// 登出
 		filterMap.put("/logout", "logout");
 		// 对所有用户认证
@@ -50,7 +50,26 @@ public class ShiroConfig {
 		filterMap.put("/**/*.html", "anon");
 		filterMap.put("/**/*.js", "anon");
 		filterMap.put("/**/*.css", "anon");
+		filterMap.put("/**/*.png", "anon");
 		filterMap.put("/**/chat/**", "anon");
+		filterMap.put("/**/crm/**", "anon");
+		filterMap.put("/**/chat**/**", "anon");
+		filterMap.put("/**/crm**/**", "anon");
+		filterMap.put("/", "anon");
+		
+		filterMap.put("/**/configuration/ui", "anon");
+		filterMap.put("/**/configuration/security", "anon");
+		filterMap.put("/**/swagger-ui.html", "anon");
+		filterMap.put("/**/swagger-resources", "anon");
+		filterMap.put("/**/swagger-resources/**", "anon");
+		filterMap.put("/**/v2/**", "anon");
+		filterMap.put("/**/webjars/**", "anon");
+		filterMap.put("/**/webjars/**/*.woff", "anon");
+		filterMap.put("/**/webjars/**/*.woff2", "anon");
+		filterMap.put("/**/csrf", "anon");
+		
+		
+		
 		
 		// 所有请求需要oauth2认证
 		filterMap.put("/**", "authc");

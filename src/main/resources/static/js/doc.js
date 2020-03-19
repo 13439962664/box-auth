@@ -5,18 +5,34 @@ $(document).ready(function(){
 	bindFunTest(moduleJSON);
 });
 
+var requestFun;
+
 function submitRequst(){
 	var url = JSON.parse($("#requestUrl").val());
 	var data = JSON.parse($("#requestText").val());
 	console.log("请求对象:");
 	console.log(data);
+	var requestData = data;
+	var requestMethod = "post";
+	if("RequestBody"==requestFun.requestPattern){
+		requestData = JSON.stringify(requestData);
+	} else if("PathVariable"==requestFun.requestPattern){
+		for(var key in requestData) {
+			url = url.replace("{"+key+"}", requestData[key]);
+		}
+		requestData = null;
+	}
+	if(requestFun.requestMethod!=null){
+		requestMethod = requestFun.requestMethod;
+	}
 	$.ajax({
         async : true,    //表示请求是否异步处理
-        type : "post",    //请求类型
+        type : requestMethod,    //请求类型
         url : url,
+        contentType:"application/json",
         dataType : "json",//返回的数据类型
         //数据，json字符串
-        data : data,
+        data : requestData,
         //请求成功
         success : function(result) {
         	$("#responseText").val(JSON.stringify(result));
@@ -25,6 +41,7 @@ function submitRequst(){
         },
         //请求失败，包含具体的错误信息
         error : function(e){
+        	$("#responseText").val(e.responseText);
             console.log(e.status);
             console.log(e.responseText);
         }
@@ -59,10 +76,12 @@ function bindFunTest(moduleJSON){
 	$(".funtest").bind("click", {"key":"value"}, function(event){
 		var url = funMap.get(this.id).url;
 		var data = funMap.get(this.id).data;
+		var fRequestPattern = funMap.get(this.id).requestPattern;
 		$("#functionName").html($(this).html());
 		$("#requestUrl").val(JSON.stringify(url));
 		$("#requestText").val(JSON.stringify(data));
 		$("#responseText").val("");
+		requestFun = funMap.get(this.id);
 	});
 	
 	$("#responseSubmit").bind("click", function(event){

@@ -1,5 +1,7 @@
 package com.box.auth.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -19,8 +21,9 @@ public class LoginController {
 	private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 	@ResponseBody
 	@RequestMapping("/loginPage")
-	public String loginIndex() {
-		return JsonUtil.controllerSuccessJson("Login First Please!");
+	public String loginIndex(HttpServletRequest request) {
+		String retUrl = request.getHeader("Referer"); 
+		return JsonUtil.controllerSuccessJson("Login First Please! Referer--->"+retUrl);
 	}
 	
 	@ResponseBody
